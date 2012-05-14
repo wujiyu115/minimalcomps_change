@@ -2,20 +2,17 @@ package demo
 {
 	import com.bit101.components.PushButton;
 	import com.bit101.components.VBox;
-
+	
 	import demo.event.CompsEvent;
-	import demo.flashcomps.ButtonDemo;
-	import demo.flashcomps.CheckBoxDemo;
-	import demo.flashcomps.ColorPickerDemo;
-	import demo.flashcomps.ComboBoxDemo;
-
+	import demo.flashcomps.*;
+	
 	import flash.display.DisplayObjectContainer;
 	import flash.events.MouseEvent;
 
 	public class FlashcompsUI extends VBox
 	{
 		private var _uiNames:Array=["Button", "CheckBox", "ColorPicker", "ComboBox", "DataGrid", "Label", "List", "NumericStepper", "RadioButton", "ProgressBar", "ScrollPane", "Slider", "TextArea", "TextInput", "TileList", "UILoader", "UIScrollBar"];
-		private var classes:Array=[ButtonDemo, CheckBoxDemo, ColorPickerDemo, ComboBoxDemo];
+		private var classes:Array=[ButtonDemo, CheckBoxDemo, ColorPickerDemo, ComboBoxDemo,DataGridDemo,LabelDemo,ListDemo,NumericStepperDemo,RadioButtonDemo,ProgressBarDemo,ScrollPaneDemo,SliderDemo,TextAreaDemo,TextInputDemo,TileListDemo,UILoaderDemo,UIScrollBarDemo];
 
 		public function FlashcompsUI(parent:DisplayObjectContainer)
 		{
