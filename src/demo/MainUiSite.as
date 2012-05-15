@@ -1,13 +1,14 @@
 package demo
 {
 	import com.bit101.components.HBox;
+	import com.bit101.components.Label;
 	import com.bit101.components.Panel;
 	import com.bit101.components.PushButton;
 	import com.bit101.components.ScrollPane;
 	import com.bit101.components.VBox;
-	
+
 	import demo.event.CompsEvent;
-	
+
 	import flash.display.DisplayObjectContainer;
 	import flash.display.Sprite;
 	import flash.events.Event;
@@ -23,7 +24,7 @@ package demo
 
 		private var _compsButtonDic:Dictionary=new Dictionary(true);
 		private var _onecompsButtonDic:Dictionary=new Dictionary(true);
-		private var classes:Array=[FlashcompsUI,MinimalcompsUI];
+		private var classes:Array=[FlashcompsUI, MinimalcompsUI];
 
 		public function MainUiSite()
 		{
@@ -32,15 +33,18 @@ package demo
 
 		private function addChildren():void
 		{
+			var label:Label=new Label(this, 10, 10, " Comps by far.");
+			label.scaleX=label.scaleY=2;
 			var hbox:HBox=new HBox(this);
-			hbox.spacing = 20;
+			hbox.y=50;
+			hbox.spacing=20;
 			_uiVbox=new VBox(hbox);
 			for (var i:int=0; i < _uiNames.length; i++)
 			{
 				var button:PushButton=new PushButton(_uiVbox, 0, 0, _uiNames[i], compsButtonHander);
 			}
 			_compsPanel=new ScrollPane(hbox);
-			_compsPanel.width=110;
+			_compsPanel.autoHideScrollBar=true;
 			_onecomPanel=new Panel(hbox);
 			_onecomPanel.width=400;
 			changeComps(_uiNames[0]);
@@ -86,6 +90,9 @@ package demo
 			}
 			removeAllChildren(_compsPanel.content);
 			removeAllChildren(_onecomPanel.content);
+			// 当滚动面板里面的内容改变时需要手动更新
+			_compsPanel.update();
+
 			if (_compsButtonDic[cls])
 			{
 				_compsPanel.content.addChild(_compsButtonDic[cls]);

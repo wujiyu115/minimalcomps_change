@@ -2,17 +2,17 @@ package demo
 {
 	import com.bit101.components.PushButton;
 	import com.bit101.components.VBox;
-
+	
 	import demo.event.CompsEvent;
 	import demo.minimalcomps.*;
-
+	
 	import flash.display.DisplayObjectContainer;
 	import flash.events.MouseEvent;
 
 	public class MinimalcompsUI extends VBox
 	{
-		private var _uiNames:Array=["Accordion", "Calendar", "CheckBox", "ColorChooser", "Component", "FPSMeter", "HBox", "HRangeSlider", "HScrollBar", "HSlider", "HUISlider", "IndicatorLight", "InputText", "Knob", "Label", "List", "Meter", "NumbericStepper", "Panel", "ProgressBar", "PushButton", "RadioButton", "RangeSlider", "RotarySelector", "ScrollBar", "ScrollPane", "Slider", "Text", "TextArea", "UISlider", "VBox", "VRangeSlider", "VScrollBar", "VSlider", "VUISlider", "WheelMenu", "Window", "BarChart", "LineChart", "PieChart"];
-		private var classes:Array=[AccordionDemo, CalendarDemo, CheckBoxDemo, ColorChooserDemo, ComboBoxDemo, FPSMeterDemo, HBoxDemo, "HRangeSlider", "HScrollBar", "HSlider", "HUISlider", "IndicatorLight", "InputText", "Knob", "Label", "List", "Meter", "NumbericStepper", "Panel", "ProgressBar", "PushButton", "RadioButton", "RangeSlider", "RotarySelector", "ScrollBar", "ScrollPane", "Slider", "Text", "TextArea", "UISlider", "VBox", "VRangeSlider", "VScrollBar", "VSlider", "VUISlider", "WheelMenu", "Window", "BarChart", "LineChart", "PieChart"];
+		private var _uiNames:Array=["Accordion", "Calendar", "CheckBox", "ColorChooser", "ComboBox", "FPSMeter", "HBox", "HRangeSlider", "HScrollBar", "HSlider", "HUISlider", "IndicatorLight", "InputText", "Knob", "Label", "List", "Meter", "NumbericStepper", "Panel", "ProgressBar", "PushButton", "RadioButton", "RotarySelector", "ScrollPane", "Text", "TextArea", "VBox", "VRangeSlider", "VScrollBar", "VSlider", "VUISlider", "WheelMenu", "Window", "BarChart", "LineChart", "PieChart","TreeList","MinimalConfigurator"];
+		private var classes:Array=[AccordionDemo, CalendarDemo, CheckBoxDemo, ColorChooserDemo, ComboBoxDemo, FPSMeterDemo, HBoxDemo,HRangeSliderDemo, HScrollBarDemo, HSliderDemo, HUISliderDemo, IndicatorLightDemo, InputTextDemo, KnobDemo, LabelDemo, ListDemo, MeterDemo, NumbericStepperDemo, PanelDemo, ProgressBarDemo, PushButtonDemo, RadioButtonDemo, RotarySelectorDemo, ScrollPaneDemo, TextDemo, TextAreaDemo, VBoxDemo, VRangeSliderDemo, VScrollBarDemo, VSliderDemo, VUISliderDemo, WheelMenuDemo, WindowDemo, BarChartDemo, LineChartDemo, PieChartDemo,TreeListDemo,MinimalConfiguratorDemo];
 
 		public function MinimalcompsUI(parent:DisplayObjectContainer)
 		{
@@ -22,7 +22,6 @@ package demo
 		protected override function addChildren():void
 		{
 			var len:int=_uiNames.length;
-			trace(len);
 			for (var i:int=0; i < len; i++)
 			{
 				var button:PushButton=new PushButton(this, 0, 0, _uiNames[i]);

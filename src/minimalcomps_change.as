@@ -11,18 +11,13 @@ package
 	[SWF(backgroundColor='#ffffff', frameRate='30', width="1366", height="768")]
 	public class minimalcomps_change extends Sprite
 	{
+		
 		public function minimalcomps_change()
 		{
 			Style.embedFonts=false;
 			Style.fontName="微软雅黑";
 			Style.fontSize=9;
 			Component.initStage(stage);
-			
-//			trace(getQualifiedClassName(FlashcompsUI));
-//			var cls:Class=getDefinitionByName("demo::FlashcompsUI") as Class;
-//			new cls(this,"a");
-			
-//			this.addChild(new ComboBoxDemo());
 			addChild(new MainUiSite());
 		}
 	}

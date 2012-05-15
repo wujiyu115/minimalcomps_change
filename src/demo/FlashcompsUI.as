@@ -5,6 +5,7 @@ package demo
 	
 	import demo.event.CompsEvent;
 	import demo.flashcomps.*;
+	import demo.flashcomps.UIScrollBarDemo;
 	
 	import flash.display.DisplayObjectContainer;
 	import flash.events.MouseEvent;
@@ -22,7 +23,6 @@ package demo
 		protected override function addChildren():void
 		{
 			var len:int=_uiNames.length;
-
 			for (var i:int=0; i < len; i++)
 			{
 				var button:PushButton=new PushButton(this, 0, 0, _uiNames[i]);
