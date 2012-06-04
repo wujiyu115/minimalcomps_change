@@ -202,7 +202,8 @@ package com.far.extend
 			
 			formatItems();
 			updateItems();
-			
+			//修正设置items时数组越界
+			makeListItems();
 			invalidate();
 		}
 	}
