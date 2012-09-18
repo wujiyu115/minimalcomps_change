@@ -6,9 +6,9 @@ package demo
 	import com.bit101.components.PushButton;
 	import com.bit101.components.ScrollPane;
 	import com.bit101.components.VBox;
-
+	
 	import demo.event.CompsEvent;
-
+	
 	import flash.display.DisplayObjectContainer;
 	import flash.display.Sprite;
 	import flash.events.Event;
@@ -24,7 +24,7 @@ package demo
 
 		private var _compsButtonDic:Dictionary=new Dictionary(true);
 		private var _onecompsButtonDic:Dictionary=new Dictionary(true);
-		private var classes:Array=[FlashcompsUI, MinimalcompsUI];
+		private var classes:Array=[FlashcompsUI, MinimalcompsUI,BloomUI];
 
 		public function MainUiSite()
 		{
