@@ -8,6 +8,7 @@ package demo
 	import demo.flashhk.AlertDemo;
 	import demo.flashhk.ButtonDemo;
 	import demo.flashhk.CheckBoxDemo;
+	import demo.flashhk.ColorPickerPanelDemo;
 	
 	import flash.display.DisplayObjectContainer;
 	import flash.events.Event;
@@ -23,8 +24,8 @@ package demo
 	 */
 	public class FlashKUI extends VBox
 	{
-		private var _uiNames:Array=["Accordion","Alert", "Button","CheckBox","ColorPicker","Container","FlowContainer","IconButton","Label","List","NumericStepper","ProgressBar","ScrollContainer","Slider","TabBox","TextBox","TextInput","ToggleButton","TreeDemo","Window"];
-		private var classes:Array=[AccordionDemo,AlertDemo,ButtonDemo,CheckBoxDemo];
+		private var _uiNames:Array=["Accordion","Alert", "Button","CheckBox","ColorPickerPanel","Container","FlowContainer","IconButton","Label","List","NumericStepper","ProgressBar","ScrollContainer","Slider","TabBox","TextBox","TextInput","ToggleButton","TreeDemo","Window"];
+		private var classes:Array=[AccordionDemo,AlertDemo,ButtonDemo,CheckBoxDemo,ColorPickerPanelDemo];
 		
 		public function FlashKUI(parent:DisplayObjectContainer)
 		{

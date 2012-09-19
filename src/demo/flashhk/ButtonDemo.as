@@ -8,7 +8,8 @@ package demo.flashhk
 	 * @version            1.0
 	 * Time:               2012-9-19 下午8:42:47
 	 */
-	import bloom.components.Button;
+	
+	import cn.flashk.controls.Button;
 	
 	import flash.display.Sprite;
 	
@@ -16,7 +17,9 @@ package demo.flashhk
 	{
 		public function ButtonDemo()
 		{
-			 var button:Button =  new Button(this,"fuck");
+			 var button:Button =  new Button();
+			 button.label="fuck";
+			 addChild(button);
 		}
 	}
 }

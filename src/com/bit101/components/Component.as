@@ -88,6 +88,7 @@ package com.bit101.components
 		}
 		
 		/**
+		 * 预留创建子级对象
 		 * Overriden in subclasses to create child display objects.
 		 */
 		protected function addChildren():void
