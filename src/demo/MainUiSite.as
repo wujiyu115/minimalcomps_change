@@ -17,14 +17,16 @@ package demo
 
 	public class MainUiSite extends Sprite
 	{
-		private var _uiNames:Array=["flashcomps", "minimalcomps", "bloom"];
+		private var _uiNames:Array=["flashcomps", "minimalcomps", "bloom","flashk"];
+		private var classes:Array=[FlashcompsUI, MinimalcompsUI,BloomUI,FlashKUI];
+		
 		private var _uiVbox:VBox; //按钮
 		private var _compsPanel:ScrollPane; //组件面板
 		private var _onecomPanel:Panel; //组件使用面板
 
 		private var _compsButtonDic:Dictionary=new Dictionary(true);
 		private var _onecompsButtonDic:Dictionary=new Dictionary(true);
-		private var classes:Array=[FlashcompsUI, MinimalcompsUI,BloomUI];
+	
 
 		public function MainUiSite()
 		{
