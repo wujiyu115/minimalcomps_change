@@ -1,5 +1,8 @@
 package demo
 {
+	import cn.flashk.controls.LinkText;
+	import cn.flashk.controls.MenuBar;
+	
 	import com.bit101.components.PushButton;
 	import com.bit101.components.VBox;
 	
@@ -8,7 +11,14 @@ package demo
 	import demo.flashhk.AlertDemo;
 	import demo.flashhk.ButtonDemo;
 	import demo.flashhk.CheckBoxDemo;
+	import demo.flashhk.ClickAbleAlphaBitmapDemo;
 	import demo.flashhk.ColorPickerPanelDemo;
+	import demo.flashhk.ComboBoxDemo;
+	import demo.flashhk.DataGridDemo;
+	import demo.flashhk.ImageDemo;
+	import demo.flashhk.LinkTextDemo;
+	import demo.flashhk.ListDemo;
+	import demo.flashhk.MenuBarDemo;
 	
 	import flash.display.DisplayObjectContainer;
 	import flash.events.Event;
@@ -24,8 +34,8 @@ package demo
 	 */
 	public class FlashKUI extends VBox
 	{
-		private var _uiNames:Array=["Accordion","Alert", "Button","CheckBox","ColorPickerPanel","Container","FlowContainer","IconButton","Label","List","NumericStepper","ProgressBar","ScrollContainer","Slider","TabBox","TextBox","TextInput","ToggleButton","TreeDemo","Window"];
-		private var classes:Array=[AccordionDemo,AlertDemo,ButtonDemo,CheckBoxDemo,ColorPickerPanelDemo];
+		private var _uiNames:Array=["Accordion","Alert", "Button","CheckBox","ColorPickerPanel","ClickAbleAlphaBitmap","ComboBox","DataGrid","Image","LinkText","List","MenuBar","ProgressBar","ScrollContainer","Slider","TabBox","TextBox","TextInput","ToggleButton","TreeDemo","Window"];
+		private var classes:Array=[AccordionDemo,AlertDemo,ButtonDemo,CheckBoxDemo,ColorPickerPanelDemo,ClickAbleAlphaBitmapDemo,ComboBoxDemo,DataGridDemo,ImageDemo,LinkTextDemo,ListDemo,MenuBarDemo];
 		
 		public function FlashKUI(parent:DisplayObjectContainer)
 		{
