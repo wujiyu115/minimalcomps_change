@@ -19,7 +19,7 @@ package demo.flashhk
 			this.addChild(_loc_2);
 			var mbXM:XML = <menu>
 								<menuitem label="文件" data="top">
-									<menuitem label="新建　　　　　　Ctrl+N" data="new" icon="IconS1"/>
+									<menuitem label="新建　　　　　　Ctrl+N" data="new" />
 									<menuitem label="打开　　　　　　Ctrl+O" data="open"/>
 									<menuitem label="保存　　　　　　Ctrl+S" data="save"/>
 									<menuitem label="另存为　　　　　Ctrl+Alt+S" data="saveAs"/>
