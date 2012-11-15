@@ -11,8 +11,10 @@ package cn.flashk.controls
 	import flash.events.Event;
 	import flash.events.MouseEvent;
 	import flash.filters.BlurFilter;
+	import flash.text.StyleSheet;
 	import flash.text.TextField;
 	import flash.text.TextFormat;
+
 	/**
 	 * Alert 用来创建弹出的提示窗口，窗口显示一段HTML文字和定义的多个(1-8)按钮用户可以关闭窗口。也可以设置在用户处理这个窗口前不允许做其他的界面操作。
 	 *  
@@ -52,6 +54,10 @@ package cn.flashk.controls
 		public static var minWidth:Number = 210;
 		public static var paddingBottom:Number = 40;
 		public static var sureLabels:Array = ["确定"];
+		public static var customLabels2:Array = ["确定","取消"];
+		public static var customLabelsModify:Array = ["修改","取消"];
+		public static var customLabelsDel:Array = ["删除","取消"];
+		public static var customLabelsYesNo:Array = ["是","否"];
 		
 		private static var mark:Sprite = new Sprite();
 		
@@ -59,6 +65,7 @@ package cn.flashk.controls
 		protected var tf2:TextFormat;
 		protected var btns:Array;
 		protected var callBackFun:Function;
+		protected var _textStr:String;
 		
 		/**
 		 * 创建一个Alert，如果希望自己控制Alert弹出，可以自行创建。
@@ -69,7 +76,7 @@ package cn.flashk.controls
 		 * @param icon 消息窗口的小图标
 		 * @param buttonLabels 消息窗口要显示按钮的标签，不限个数，之后你可以通过Alert实例的buttons属性来访问这些按钮，比如添加图标和重新排列等等，如["删除","放弃","重新来过"]
 		 */ 
-		public function Alert(text:String,title:String,icon:Object,buttonLabels:Array,closeFunction:Function)
+		public function Alert(text:String,title:String,icon:Object,buttonLabels:Array,closeFunction:Function,alertWidth:Number=0)
 		{
 			super();
 			
@@ -79,8 +86,20 @@ package cn.flashk.controls
 			tf2.color = ColorConversion.transformWebColor(DefaultStyle.textColor);
 			
 			callBackFun = closeFunction;
+			_textStr = text;
 			info = new TextField();
-			info.width = maxWidth-50;
+			info.multiline = true;
+			info.wordWrap = true;
+			info.y = tiHeight+10;
+			info.x = _paddingLeft+10;
+			if(alertWidth>0)
+			{
+				info.width = alertWidth-info.x*2;
+			}else
+			{
+				info.width = maxWidth-50;
+			}
+			info.selectable = false;
 			info.htmlText = text;
 			info.setTextFormat(tf2);
 			info.width = info.textWidth+15;
@@ -89,8 +108,6 @@ package cn.flashk.controls
 			info.blendMode = BlendMode.LAYER;
 			this.title = title;
 			this.addChild(info);
-			info.y = tiHeight+10;
-			info.x = _paddingLeft+10;
 			draggingAlpha = 1.0;
 			showMaxButton = false;
 			showMiniButton = false;
@@ -101,7 +118,7 @@ package cn.flashk.controls
 			var wi:Number = info.width+info.x*2;
 			if(wi<Alert.minWidth) wi = Alert.minWidth;
 			if(wi>Alert.maxWidth) wi = Alert.maxWidth;
-			setSize(wi,info.height+tiHeight+70);
+            setSize(wi,info.height+tiHeight+70);
 			btns = new Array();
 			var btn:Button;
 			for(var i:int=0;i<buttonLabels.length;i++){
@@ -123,13 +140,20 @@ package cn.flashk.controls
 			}
 			allw -= space;
 			var stx:Number = int((_compoWidth - allw)/2);
-			if(stx < 10) stx = 10;
+			if(stx < 20) stx = 20;
 			Button(btns[0]).x = stx;
+            var btnWidth:Number = 0;
 			if(btns.length>1){
 				for(i=1;i<btns.length;i++){
 					 Button(btns[i]).x = Button(btns[i-1]).x+Button(btns[i-1]).compoWidth+space;
 				}
 			}
+            btnWidth = Button(btns[btns.length-1]).x+Button(btns[btns.length-1]).width+stx;
+            if(btnWidth>wi)
+            {
+                wi = btnWidth;
+                setSize(wi,info.height+tiHeight+70);
+            }
 			closeBtn.toolTip = "关闭消息";
 		}
 		/**
@@ -143,6 +167,28 @@ package cn.flashk.controls
 		 */ 
 		public function get infoTextField():TextField{
 			return info;
+		}
+		
+		/**
+		 * 设置文本的StyleSheet样式表
+		 * @param style
+		 * 
+		 */
+		public function set textStyleSheet(style:StyleSheet):void
+		{
+			info.styleSheet = style;
+			info.htmlText = _textStr;
+		}
+		
+		/**
+		 * 使用一个Sprite或者显示对象替换Text
+		 * @param displayObject
+		 * 
+		 */
+		public function replaceTextByDisplay(displayObject:DisplayObject):void
+		{
+			info.visible = false;
+			this.addChild(displayObject);
 		}
 		/**
 		 * 以编程方式关闭此消息弹出窗口
@@ -182,15 +228,14 @@ package cn.flashk.controls
 		 * 
 		 * @see cn.flashk.controls.events.AlertCloseEvent
 		 */ 
-		public static function show(text:String,parentContainer:DisplayObjectContainer,closeFunction:Function= null,title:String="消息",icon:Object=null,buttonLabels:Array=null,isUnableMouse:Boolean = true):Alert{
+		public static function show(text:String,parentContainer:DisplayObjectContainer,closeFunction:Function= null,title:String="消息",icon:Object=null,buttonLabels:Array=null,isUnableMouse:Boolean = true,alertWidth:Number=0):Alert{
 			if(buttonLabels == null) buttonLabels = sureLabels;
-			var alert:Alert = new Alert(text,title,icon,buttonLabels,closeFunction);
+			var alert:Alert = new Alert(text,title,icon,buttonLabels,closeFunction,alertWidth);
 			alert.x = int((parentContainer.stage.stageWidth-alert.compoWidth)/2);
 			alert.y = int((parentContainer.stage.stageHeight-alert.compoHeight)/2);
 			if(alert.x < 0) alert.x = 0;
 			if(alert.y <0 ) alert.y = 0;
 			if(isUnableMouse==true){
-				trace(parentContainer.stage.root);
 				if(blurDisplayObject == null){
 					blurDisplayObject = parentContainer.stage.getChildAt(0);
 				}
@@ -204,6 +249,13 @@ package cn.flashk.controls
 			parentContainer.addChild(alert);
 			alert.addEventListener("close",checkRemoveMark);
 			return alert;
+		}
+		override public function setSize(newWidth:Number, newHeight:Number):void {
+			super.setSize(newWidth,newHeight);
+			if(info)
+			{
+				info.width = newWidth-info.x*2;
+			}
 		}
 		private static function checkRemoveMark(event:Event):void{
 			DisplayObject(event.currentTarget).removeEventListener("close",checkRemoveMark);

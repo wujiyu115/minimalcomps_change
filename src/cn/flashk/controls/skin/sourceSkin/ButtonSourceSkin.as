@@ -135,7 +135,7 @@ package cn.flashk.controls.skin.sourceSkin
 		protected function showOutFrame(event:Event):void
 		{
 			index++;
-			if(index == pressIndex){
+			if(index >= pressIndex){
 				index = 1;
 			}
 			bp.sourceBitmapData = bds[index] as BitmapData;

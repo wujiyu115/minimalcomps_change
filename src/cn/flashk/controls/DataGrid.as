@@ -1,6 +1,7 @@
 package cn.flashk.controls
 {
 	import cn.flashk.controls.interfaces.IListItemRender;
+	import cn.flashk.controls.support.DataGridColumnSet;
 	import cn.flashk.controls.support.DataGridItemRender;
 	import cn.flashk.controls.support.DataGridTitle;
 	import cn.flashk.controls.support.TextFieldItemRender;
@@ -12,11 +13,34 @@ package cn.flashk.controls
 	 * 
 	 * <p>DataGrid 组件特别适用于显示包含多个属性的对象。</p>
 	 * <p>columnWidths、dataField、labels、sortByNumberTypes的长度应该保持一致。 </p>
+	 * 
+	 * 
+	 * 有两种方式来初始化dataGrid:
+	 * 
+	 * 
+	 * 			dg.columnWidths = [-30,-30,-40];
+	 * 			dg.labels = ["标题","时间","大小"];
+	 * 			dg.dataField = ["label","label2","title"];
+	 * 			dg.sortByNumberTypes = [ false,true,false];
+	 * 
+	 * 
+	 * 或者
+	 * 
+	 *			var sets:Vector. DataGridColumnSet = new Vector. DataGridColumnSet ();
+	 *			sets.push(new DataGridColumnSet("序","label1",36));
+	 *			sets.push(new DataGridColumnSet("玩家","label2",120));
+	 *			dg.initColumns(sets);
+	 * 		
+	 *  对于columnWidths 最后一个如果为0将使用剩余的宽度，前面的值如果为正，则使用像素，如果为负数，则使用百分比如-30=30% 50=50px
+	 * 
+	 *  可以设置itemRender属性指向你自己定义的类引用来使用你自己的渲染器，参见ListItemRender和IListItemRender接口
 	 *  
 	 * @langversion ActionScript 3.0
 	 * @playerversion Flash 9.0
 	 * 
 	 * @see cn.flashk.video.VideoDisplay
+	 * @see cn.flashk.controls.support.ListItemRender
+	 * @see cn.flashk.controls.interfaces.IListItemRender
 	 * 
 	 * @author flashk
 	 */
@@ -29,22 +53,51 @@ package cn.flashk.controls
 		protected var _columnWidths:Array =[-25,-25,-25,-25];
 		protected var _sortByNumberTypes:Array =[true,true,true,true,true,true,true,true,true,true,true,true,true,true];
 		protected var _renders:Array = [TextFieldItemRender,TextFieldItemRender,TextFieldItemRender,TextFieldItemRender,TextFieldItemRender];
+		protected var _isSetWidth:Boolean = false;
 		
 		public function DataGrid()
 		{
-			
+			this.mouseEnabled = false;
 			super();
 			_compoWidth = 600;
 			_itemRender = DataGridItemRender;
 			styleSet["padding"] = 10;
 			styleSet["paddingRight"] = 5;
-			setSize(_compoWidth, _compoHeight);
 			items.y = 25;
 			scrollBar.setTarget(items,false,_compoWidth,15);
 			title = new DataGridTitle();
-			title.setSize(_compoWidth-20,items.y);
 			title.dg = this;
 			this.addChild(title);
+			setSize(_compoWidth, _compoHeight);
+		}
+		
+		public function set ableTitleSort(value:Boolean):void
+		{
+			title.mouseChildren = value;
+		}
+		public function initColumns(setArray:Vector.<DataGridColumnSet>):void
+		{
+			var arr:Array = [[],[],[],[],[]];
+			for(var i:int =0 ;i<setArray.length;i++)
+			{
+				arr[0].push(setArray[i].title);
+				arr[1].push(setArray[i].dataField);
+				arr[2].push(setArray[i].sortByNumberTypes);
+				arr[3].push(setArray[i].width);
+				arr[4].push(setArray[i].itemRender);
+			}
+			_renders = arr[4];
+			columnWidths = arr[3];
+			dataField = arr[1];
+			sortByNumberTypes = arr[2];
+			labels = arr[0];
+		}
+		override public function setSize(newWidth:Number, newHeight:Number):void{
+			super.setSize(newWidth,newHeight);
+			if(title)
+			{
+				title.setSize(_compoWidth,items.y);
+			}
 		}
 		/**
 		 * 获得对表格标题栏实例的引用
@@ -79,6 +132,7 @@ package cn.flashk.controls
 		 * @default [-25,-25,-25,-25]
 		 */ 
 		public function set columnWidths(value:Array):void{
+			_isSetWidth = true;
 			_columnWidths = value;
 		}
 		public function get labels():Array{
@@ -91,6 +145,13 @@ package cn.flashk.controls
 		 */
 		public function set labels(value:Array):void{
 			_labels = value;
+			if(_isSetWidth == false)
+			{
+				for(var i:int=0;i<value.length;i++)
+				{
+					_columnWidths[i] = -1/value.length*100;
+				}
+			}
 			title.updateLabels();
 		}
 		/**

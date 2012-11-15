@@ -256,12 +256,13 @@ package cn.flashk.controls.skin.sourceSkin
 			}else {
 				lessNum = 0;
 			}
-			
-			height = (tar.compoHeight - lessNum * 2) / (1+tar.maxScrollPosition / tar.clipSize);
-			if (height < 30) {
-				height = 30;
+			var clipH:Number = (1+tar.maxScrollPosition / tar.clipSize);
+			if(clipH==0) clipH = 1;
+			height = (tar.compoHeight - lessNum * 2) /clipH ;
+			if (height < 20) {
+				height = 20;
 			}
-			if(isNaN(tar.maxScrollPosition) || tar.maxScrollPosition <0){
+			if(isNaN(tar.maxScrollPosition) || tar.maxScrollPosition <=0){
 				scroller.visible = false;
 				return;
 			}else{

@@ -29,6 +29,7 @@ package cn.flashk.controls.support
 		
 		public function DataGridTitle()
 		{
+			this.mouseEnabled = false;
 			shape = new Shape();
 			this.addChild(shape);
 		}
@@ -85,27 +86,38 @@ package cn.flashk.controls.support
 			var pa:Number = Number(_list.getStyleValue("textPadding"));
 			var bu:Button;
 			var nop:Number;
+			var nowWidth:Number =0;
+			var valW:Number = 0;
 			for(var i:int=0;i<_list.labels.length;i++){
 				bu = bus[i] as Button;
 				if(i == 0){
 					bu.x = 0;
 					if(_list.columnWidths[i] <0 ){
-						bu.setSize( -_list.columnWidths[i]/100*wi,_height);
+						valW = -_list.columnWidths[i]/100*wi;
 					}else{
-						bu.setSize( _list.columnWidths[i],_height);
+						valW = _list.columnWidths[i];
 					}
+					nowWidth += valW;
+					bu.setSize( valW,_height);
 				}else{
 					nop = 0;
 					for(var j:int=0;j<i;j++){
 						nop += _list.columnWidths[j];
 					}
-					if(_list.columnWidths[i] <0 ){
+					if(_list.columnWidths[i] < 0 ){
 						bu.x =  int( -nop*wi/100)-1;
-						bu.setSize( -_list.columnWidths[i]/100*wi+i+1,_height);
+						valW= -_list.columnWidths[i]/100*wi+i+1;
 					}else{
 						bu.x = nop;
-						bu.setSize( _list.columnWidths[i]+i*2,_height);
+						valW=  _list.columnWidths[i]+i*2;
 					}
+					if(i==_list.labels.length-1 && _list.columnWidths[i]==0)
+					{
+						valW = _width-nowWidth;
+						bu.x = nowWidth;
+					}
+					nowWidth += valW;
+					bu.setSize( valW,_height);
 					Shape(shapes[i]).x= bu.x;
 				}
 			}
@@ -129,8 +141,9 @@ package cn.flashk.controls.support
 			shape.graphics.clear();
 			shape.graphics.beginFill(ColorConversion.transformWebColor(DefaultStyle.buttonOutTextColor),1);
 			shape.graphics.lineStyle(0,0,0);
-			var dx:Number = event.currentTarget.x + Button(event.currentTarget).compoWidth-30;
-			if(dx<event.currentTarget.x+5) dx = event.currentTarget.x +5;
+			var dx:Number = event.currentTarget.x + Button(event.currentTarget).compoWidth-35;
+			var minBuX:Number = Button(event.currentTarget).textField.width+Button(event.currentTarget).textField.x+3;
+			if(dx< minBuX) dx = minBuX ;
 			var dy:Number = int(_height/2)+2;
 			if(isUpSort == false){
 				shape.graphics.moveTo(dx-2.5,dy-3);

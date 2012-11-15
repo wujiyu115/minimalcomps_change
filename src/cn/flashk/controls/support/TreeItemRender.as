@@ -2,6 +2,7 @@ package cn.flashk.controls.support
 {
 	import cn.flashk.controls.List;
 	import cn.flashk.controls.Tree;
+	import cn.flashk.controls.events.TreeEvent;
 	import cn.flashk.controls.interfaces.IListItemRender;
 	import cn.flashk.controls.managers.DefaultStyle;
 	import cn.flashk.controls.managers.SkinLoader;
@@ -197,6 +198,7 @@ package cn.flashk.controls.support
 						Tree(_list).addItemRenderAt(item,this.parent.getChildIndex(this)+myCloseRefs[m].index);
 					}
 				}
+				Tree(_list).dispatchEvent(new TreeEvent(TreeEvent.TREE_NODE_OPEN));
 			}else{
 				openBp.bitmapData = tree.closedIcon;
 				closeRefs = [];
@@ -209,6 +211,7 @@ package cn.flashk.controls.support
 				isRecord = true;
 				removeMyOpen();
 				closeRefs=[];
+				Tree(_list).dispatchEvent(new TreeEvent(TreeEvent.TREE_NODE_CLOSE));
 			}
 		}
 		public function record():void{

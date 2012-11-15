@@ -7,9 +7,11 @@ package cn.flashk.controls
 	
 	import flash.display.Shape;
 	import flash.events.Event;
+	import flash.events.FocusEvent;
 	import flash.events.MouseEvent;
 	import flash.utils.clearTimeout;
 	import flash.utils.setTimeout;
+
 	/**
 	 * 
 	 * NumericStepper 组件包括一个单行输入文本字段和一对用于逐一显示可能值的箭头按钮。还可使用向上箭头键和向下箭头增加减少这些值。。
@@ -43,6 +45,7 @@ package cn.flashk.controls
 			_compoHeight = 23;
 			
 			restrict = "0-9 .-";
+			txt.addEventListener(FocusEvent.FOCUS_OUT,checkNum);
 			upBtn = new Button();
 			upBtn.setSize(17,12);
 			upBtn.y = 0;
@@ -74,6 +77,13 @@ package cn.flashk.controls
 				downBtn.useSkinSize = true;
 				downBtn.setSkin(SkinLoader.getClassFromSkinFile(SourceSkinLinkDefine.NUMERIC_STEPPER_DOWN));
 			}
+		}
+		
+		protected function checkNum(event:Event=null):void
+		{
+			if(Number(txt.text)> _maximum) txt.text = String(_maximum);
+			if(Number(txt.text)< _minimum) txt.text = String(_minimum);
+			
 		}
 		override protected function updateSkinPro():void{
 			
@@ -164,12 +174,14 @@ package cn.flashk.controls
 		}
 		public function set maximum(value:Number):void{
 			_maximum = value;
+			checkNum();
 		}
 		public function get maximum():Number{
 			return _maximum;
 		}
 		public function set minimum(value:Number):void{
 			_minimum = value;
+			checkNum();
 		}
 		public function get minimum():Number{
 			return _minimum;

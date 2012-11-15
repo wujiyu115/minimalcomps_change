@@ -36,10 +36,8 @@ package cn.flashk.controls
 		public function TextInput() 
 		{
 			super();
-			
 			_compoWidth = 120;
 			_compoHeight = 23;
-			
 			txt = new TextField();
 			txt.background = false;
 			txt.type = TextFieldType.INPUT;
@@ -49,19 +47,13 @@ package cn.flashk.controls
 			txt.addEventListener(FocusEvent.FOCUS_IN, checkTextFocusIn);
 			txt.addEventListener(FocusEvent.FOCUS_OUT, checkTextFocusOut);
 			this.addChild(txt);
-			
-			
-			
 			new TextInputStyle(styleSet);
-			
-			
 			tf = new TextFormat();
 			tf.align = TextFormatAlign.LEFT;
 			tf.size = DefaultStyle.fontSize;
 			tf.color = styleSet[TextInputStyle.TEXT_COLOR];
 			tf.font = DefaultStyle.font;
 			txt.setTextFormat(tf);
-			
 			setSize(_compoWidth, _compoHeight);
 			this.dispatchEvent(new Event(Event.INIT));
 		}
@@ -107,10 +99,6 @@ package cn.flashk.controls
 			super.setStyle(styleName, value);
 			switch(styleName) {
 				case TextInputStyle.TEXT_COLOR:
-					
-					break;
-					
-				default:
 					break;
 			}
 		}
@@ -121,11 +109,13 @@ package cn.flashk.controls
 		}
 		protected function checkTextFocusOut(event:FocusEvent):void {
 			if (txt.text == "") {
-				txt.text = _tipText;
-				tf.color = styleSet[TextInputStyle.TIP_TEXT_COLOR];
-				txt.setTextFormat(tf);
+				if(_tipText != null && _tipText != "")
+				{
+					txt.text = _tipText;
+					tf.color = styleSet[TextInputStyle.TIP_TEXT_COLOR];
+					txt.setTextFormat(tf);
+				}
 			}
 		}
 	}
-
 }

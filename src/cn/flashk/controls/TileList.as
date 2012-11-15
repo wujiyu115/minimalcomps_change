@@ -4,9 +4,11 @@ package cn.flashk.controls
 	import cn.flashk.controls.managers.SkinLoader;
 	import cn.flashk.controls.managers.SkinManager;
 	import cn.flashk.controls.managers.SourceSkinLinkDefine;
+	import cn.flashk.controls.managers.StyleManager;
 	import cn.flashk.controls.skin.ActionDrawSkin;
 	import cn.flashk.controls.skin.ListSkin;
 	import cn.flashk.controls.skin.sourceSkin.ListSourceSkin;
+	import cn.flashk.controls.skin.sourceSkin.SourceSkin;
 	import cn.flashk.controls.support.ItemsSelectControl;
 	import cn.flashk.controls.support.TileListThumbnail;
 	import cn.flashk.controls.support.UIComponent;
@@ -43,8 +45,10 @@ package cn.flashk.controls
 			_compoHeight = 300;
 			
 			_itemRender = TileListThumbnail;
-			_allowMultipleSelection = true;
+			_allowMultipleSelection = StyleManager.globalTileListAllowMultipleSelection;
 			styleSet["textPadding"] = 10;
+			styleSet["topPaddint"] = 5;
+			styleSet["leftPaddint"] = 5;
 			setSize(_compoWidth, _compoHeight);
 			items.y = 1;
 		}
@@ -88,16 +92,20 @@ package cn.flashk.controls
 			var max:uint;
 			var nx:Number;
 			var ny:Number;
-			for(var i:int=1;i<items.numChildren;i++){
+			for(var i:int=0;i<items.numChildren;i++){
 				itemT = items.getChildAt(i) as ITileListItemRender;
 				nx = itemT.itemWidth+_horizontalSpace;
 				ny = itemT.itemHeight+_verticalSpace;
 				max = uint((_compoWidth-17)/nx);
-				DisplayObject(itemT).x = i*nx%(max*nx);
-				DisplayObject(itemT).y = Math.floor(i/max)*ny;
+				if(max == 0)
+				{
+					max = 1;
+				}
+				DisplayObject(itemT).x = styleSet["leftPaddint"] + i*nx%(max*nx);
+				DisplayObject(itemT).y = styleSet["topPaddint"] + Math.floor(i/max)*ny;
 			}
 			scrollBar.snapNum = 1;
-			scrollBar.updateSize(Math.floor((items.numChildren-1)/max+1)*ny);
+			scrollBar.updateSize(Math.floor((items.numChildren-1)/max+1)*ny+styleSet["topPaddint"]+1);
 		}
 	}
 }

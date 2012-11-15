@@ -18,6 +18,7 @@ package cn.flashk.controls
 	import flash.text.TextField;
 	import flash.text.TextFieldType;
 	import flash.text.TextFormat;
+	import flash.utils.getTimer;
 	
 	/**
 	 * ComboBox 组件包含一个下拉列表，用户可以从该列表中选择单个值。 其功能与 HTML 中的 SELECT 表单元素的功能相似。 ComboBox 组件可以是可编辑的，在这种情况下，用户可以在 ComboBox 组件的 TextInput 部分键入不在列表中的条目。 。
@@ -51,12 +52,9 @@ package cn.flashk.controls
 			_list.setSize(_compoWidth,_rowCount*List.defaultItemHeight);
 			_list.addEventListener(Event.CHANGE,updateSelect);
 			_list.addEventListener("getSelectIndexData",setSelectLabel);
-			setSize(_compoWidth-2, _compoHeight);
 			initMouseEvents();
 			txt = new TextField();
 			txt.x = 5;
-			txt.height = _compoHeight;
-			txt.width = compoWidth-_compoHeight-txt.x;
 			txt.mouseEnabled = _editable;
 			txt.type = TextFieldType.INPUT;
 			tf = new TextFormat();
@@ -65,6 +63,7 @@ package cn.flashk.controls
 			tf.font = DefaultStyle.font;
 			txt.defaultTextFormat = tf;
 			this.addChild(txt);
+			setSize(_compoWidth-2, _compoHeight);
 		}
 		
 		/**
@@ -82,7 +81,6 @@ package cn.flashk.controls
 		}
 		protected function setSelectLabel(event:Event=null):void
 		{
-			trace("init",initIndex);
 			txt.text = _list.getItemAt(initIndex).label;
 		}
 		public function get editable():Boolean{
@@ -153,12 +151,15 @@ package cn.flashk.controls
 		 */ 
 		public function set rowCount(value:uint):void{
 			_rowCount = value;
-			_list.setSize(_compoWidth,_rowCount*List.defaultItemHeight);
+			_list.setSize(_compoWidth,_rowCount*List.defaultItemHeight+2);
 		}
 		protected function updateSelect(event:Event):void
 		{
-			this.stage.removeChild(_list);
-			this.stage.removeEventListener(MouseEvent.MOUSE_DOWN,checkRemove_list);
+            if(_list.parent == this.stage && this.stage != null) 
+            {
+    			this.stage.removeChild(_list);
+    			this.stage.removeEventListener(MouseEvent.MOUSE_DOWN,checkRemove_list);
+            }
 			txt.text = _list.selectedItem.label;
 			this.dispatchEvent(event.clone());
 		}
@@ -167,6 +168,7 @@ package cn.flashk.controls
 			if(_list.length>_list.selectedIndex){
 				setSelectLabel();
 			}
+			
 		}
 		public function addItemAt(item:Object,index:uint):void{
 			_list.addItemAt(item,index);
@@ -174,6 +176,15 @@ package cn.flashk.controls
 				setSelectLabel();
 			}
 		}
+        public function removeItemAt(index:uint):void
+        {
+            _list.removeItemAt(index);
+        }
+        public function removeAll():void
+        {
+            _list.removeAll();
+        }
+        
 		override public function setDefaultSkin():void {
 			setSkin(ComboBoxSkin);
 		}
@@ -191,9 +202,10 @@ package cn.flashk.controls
 			}
 		}
 		override public function setSize(newWidth:Number, newHeight:Number):void {
-			//trace("size", this);
 			super.setSize(newWidth, newHeight);
 			_list.setSize(newWidth,_list.compoHeight);
+			txt.height = _compoHeight;
+			txt.width = compoWidth-_compoHeight-txt.x;
 		}
 		protected function initMouseEvents():void
 		{
@@ -203,7 +215,7 @@ package cn.flashk.controls
 		
 		protected function open_list(event:MouseEvent):void
 		{
-			trace("click");
+			if(_list.length == 0) return;
 			this.stage.addChild(_list);
 			var po:Point = this.localToGlobal(new Point(0,_compoHeight+1));
 			_list.x = int(po.x);
@@ -212,6 +224,12 @@ package cn.flashk.controls
 				_list.y = po.y - _compoHeight-_list.compoHeight-1;
 			}
 			this.stage.addEventListener(MouseEvent.MOUSE_DOWN,checkRemove_list);
+			
+			var less:int = _rowCount;
+			if(_list.length<less) less = _list.length;
+			
+			trace(_compoWidth,less*List.defaultItemHeight+2);
+			_list.setSize(_compoWidth,less*List.defaultItemHeight+2);
 			
 		}
 		private function checkRemove_list(event:MouseEvent):void{

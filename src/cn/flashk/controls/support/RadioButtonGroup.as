@@ -100,7 +100,10 @@ package cn.flashk.controls.support
 		}
 		private function setOneSelect(event:Object):void {
 			var tar:RadioButton = event.currentTarget as RadioButton;
-			_selecttion = tar;
+			if(tar.selected == true)
+			{
+				_selecttion = tar;
+			}
 			if (tar.selected == false) {
 				return;
 			}
@@ -110,6 +113,7 @@ package cn.flashk.controls.support
 					RadioButton(radios[i]).selected = false;
 				}
 			}
+			this.dispatchEvent(new Event(Event.CHANGE));
 		}
 	}
 

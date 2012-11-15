@@ -1,5 +1,8 @@
 package demo
 {
+	import cn.flashk.controls.managers.SkinLoader;
+	import cn.flashk.controls.skin.SkinThemeColor;
+	
 	import com.bit101.components.PushButton;
 	import com.bit101.components.VBox;
 	
@@ -52,13 +55,17 @@ package demo
 		
 		protected override function addChildren():void
 		{
-			
+			SkinLoader.loadSkinFile("assets/UISkin.swf");
+			SkinLoader.eventDispatcher.addEventListener("skinLoaded", initChildren);
 			addEventListener(Event.ADDED_TO_STAGE,addToStageHandler);
 			var len:int=_uiNames.length;
 			for (var i:int=0; i < len; i++)
 			{
 				var button:PushButton=new PushButton(this, 0, 0, _uiNames[i]);
 			}
+		}
+		
+		private function initChildren(event:Event):void{
 			this.addEventListener(MouseEvent.CLICK, clickCompshandler);
 		}
 		

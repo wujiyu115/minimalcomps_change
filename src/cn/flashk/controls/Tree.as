@@ -160,6 +160,8 @@ package cn.flashk.controls
 				item.setSize(itemWidth,0);
 				items.addChild(item as DisplayObject);
 				InteractiveObject(item).addEventListener(MouseEvent.CLICK,itemClick);
+				InteractiveObject(item).addEventListener(MouseEvent.ROLL_OVER,itemMouseOver);
+				InteractiveObject(item).addEventListener(MouseEvent.ROLL_OUT,itemMouseOut);
 			}
 			alignItems(items);
 		}
@@ -168,6 +170,8 @@ package cn.flashk.controls
 			items.addChildAt(render as DisplayObject,index);
 			alignItems(items);
 			InteractiveObject(render).addEventListener(MouseEvent.CLICK,itemClick);
+			InteractiveObject(render).addEventListener(MouseEvent.ROLL_OVER,itemMouseOver);
+			InteractiveObject(render).addEventListener(MouseEvent.ROLL_OUT,itemMouseOut);
 		}
 		public function removeItemRenderAt(render:IListItemRender):void{
 			

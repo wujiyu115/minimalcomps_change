@@ -1,9 +1,11 @@
 package cn.flashk.controls 
 {
+	import cn.flashk.controls.events.TabBarEvent;
 	import cn.flashk.controls.events.TabCloseEvent;
 	import cn.flashk.controls.managers.SkinLoader;
 	import cn.flashk.controls.managers.SkinManager;
 	import cn.flashk.controls.managers.SourceSkinLinkDefine;
+	import cn.flashk.controls.managers.StyleManager;
 	import cn.flashk.controls.skin.ActionDrawSkin;
 	import cn.flashk.controls.skin.TabBarSkin;
 	import cn.flashk.controls.skin.sourceSkin.TabSourceSkin;
@@ -55,6 +57,8 @@ package cn.flashk.controls
 		public var align:String = "center";
 		public var isAutoResetXY:Boolean = true;
 		public var isAutoClip:Boolean = true;
+        //切换操作的最少间隔时间:毫秒
+        public var ableClickAfterTime:uint = 20;
 		protected var _padding:Number = 1;
 		public static var selectUp:Number = 2;
 		protected var tabs:Array;
@@ -68,8 +72,8 @@ package cn.flashk.controls
 		protected var isHide:Boolean;
 		protected var switchFun:Function;
 		protected var index:uint=0;
-		protected var hn:Number = 0.07;
-		protected var sn:Number = 0.12;
+		protected var hn:Number = 1;
+		protected var sn:Number = 1;
 		protected var _contents:Array;
 		protected var _labels:Array;
 		protected var _icons:Array;
@@ -79,6 +83,8 @@ package cn.flashk.controls
 		{
 			
 			super();
+            isAutoClip = StyleManager.globalTabbarAutoClip;
+            align = StyleManager.globalTabBarAlign;
 			_compoWidth = 400;
 			_compoHeight = 500;
 			tabs = [];
@@ -125,8 +131,9 @@ package cn.flashk.controls
 		 * @param icon 标签要显示的图标
 		 * @param isAbleClose 是否显示关闭按钮以让用户关闭标签（不管显示此按钮与否，都可通过编程方式关闭标签）
 		 */ 
-		public function addTab(tabName:String,content:DisplayObject,icon:Object=null,isAbleClose:Boolean=false):void{
+		public function addTab(tabName:String,content:DisplayObject,icon:Object=null,isAbleClose:Boolean=false):Tab{
 			var tab:Tab ;
+            if(content == null) content = new Sprite();
 			tab = new Tab();
 			tab.index = tabs.length;
 			tab.label = tabName;
@@ -152,6 +159,7 @@ package cn.flashk.controls
 				viewContentByIndex(0);
 			}
 			alignTabs();
+            return tab;
 		}
 		/**
 		 * 关闭一个标签
@@ -185,7 +193,7 @@ package cn.flashk.controls
 		{
 			switchTab(0);
 			this.removeEventListener(Event.ENTER_FRAME,nextFrameDo);
-			setTimeout(ableClick,500);
+			setTimeout(ableClick,ableClickAfterTime);
 		}
 		private function ableClick():void{
 			this.mouseChildren = true;
@@ -274,16 +282,23 @@ package cn.flashk.controls
 			switchFun = switchTabMain;
 			alphaSwitch();
 			this.mouseChildren = false;
-			setTimeout(ableClick,500);
+			setTimeout(ableClick,ableClickAfterTime);
 		}
 		protected function switchTabMain():void {
 			viewContentByIndex(index);
+            this.dispatchEvent(new TabBarEvent(TabBarEvent.TAB_SWITCH,index));
 		}
 		protected function alphaSwitch():void {
+            if(hn>=1)
+            {
+                switchFun();
+                return;
+            }
 			isHide = true;
+            alphaShow();
 			this.addEventListener(Event.ENTER_FRAME, alphaShow);
 		}
-		protected function alphaShow(event:Event):void {
+		protected function alphaShow(event:Event=null):void {
 			if(isHide == true){
 				box.alpha -= hn;
 				if (box.alpha <= 0) {

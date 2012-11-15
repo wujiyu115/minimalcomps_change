@@ -113,13 +113,13 @@ package cn.flashk.controls.support
 		 * 立即重新计算图像，如果sourceBitmapData的数据有更新，调用此方法立即刷新Scale9GridBitmap与sourceBitmapData同步，请注意Scale9GridBitmap的bitmapData始终与sourceBitmapData是两份不同的数据和对象
 		 */ 
 		public function update():void{
-			if(_width == sourceBD.width && _height == sourceBD.height){
+			if(sourceBD && _width == sourceBD.width && _height == sourceBD.height){
 				this.bitmapData = sourceBD;
 				return;
 			}
-			if(_width == sourceBD.width){
+			if(sourceBD && _width == sourceBD.width){
 				scaleGrid3V();
-			}else if(_height == sourceBD.height){
+			}else if(sourceBD && _height == sourceBD.height){
 				scaleGrid3();
 			}else{
 				scaleGrid9();

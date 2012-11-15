@@ -28,7 +28,7 @@ package cn.flashk.controls.skin.sourceSkin
 				skin = new Skin() as DisplayObject;
 			}
 			initBp(skin);
-			tar = target as UIComponent;
+			tar = target;
 			if(bd == null){
 				bd=new BitmapData(skin.width,skin.height,true,0);
 				bd.draw(skin,new Matrix(1,0,0,1,sx,sy));

@@ -8,7 +8,10 @@ package cn.flashk.controls.managers
 	import flash.display.Loader;
 	import flash.events.Event;
 	import flash.events.EventDispatcher;
+	import flash.filters.GlowFilter;
 	import flash.net.URLRequest;
+	import flash.system.LoaderContext;
+	import flash.utils.ByteArray;
 	import flash.utils.getDefinitionByName;
 
 	public class SkinLoader
@@ -20,10 +23,16 @@ package cn.flashk.controls.managers
 		public function SkinLoader()
 		{
 		}
-		public static function loadSkinFile(path:String):void{
+		public static function loadSkinFile(path:String,bytes:ByteArray=null,context:LoaderContext=null):void{
 			ldr = new Loader();
 			ldr.contentLoaderInfo.addEventListener(Event.COMPLETE,initSkinSet);
-			ldr.load(new URLRequest(path));
+            if(bytes== null)
+            {
+			    ldr.load(new URLRequest(path),context);
+            }else
+            {
+                ldr.loadBytes(bytes,context);
+            }
 		}
 		public static function getClassFromSkinFile(name:String):Class{
 			try{
@@ -58,12 +67,24 @@ package cn.flashk.controls.managers
 			DefaultStyle.buttonOverTextColor = xml.buttonOverTextColor;
 			DefaultStyle.buttonDownTextColor = xml.buttonPressTextColor;
 			DefaultStyle.menuBackgroundColor = xml.menuBackgroundColor;
+//			DefaultStyle.
+			SkinThemeColor.itemOverTextColor = ColorConversion.transformWebColor(xml.itemOverTextColor);
 			SkinThemeColor.border = ColorConversion.transformWebColor(xml.borderColor);
+			
+			var obj:Object = ldr.content;
+//			DefaultStyle.buttonTextFilters = obj.buttonTextFilters;
+			
+//			DefaultStyle.buttonTextFilters = [ new GlowFilter(0,1,2,2,5,1)];
 		}
 		protected static function initSkinSet(event:Event):void
 		{
+            initSWFSkinSet(ldr);
+        }
+        public static function initSWFSkinSet(loader:Loader):void
+        {
 			SkinManager.isUseDefaultSkin = false;
-			var obj:Object = ldr.content;
+            ldr = loader;
+			var obj:Object = loader.content;
 			var xml:XML = obj.skinSet as XML;
 			setSkinStyle(xml);
 			eventDispatcher.dispatchEvent(new Event("skinLoaded"));

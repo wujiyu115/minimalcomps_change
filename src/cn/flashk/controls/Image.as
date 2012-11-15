@@ -1,14 +1,15 @@
 package cn.flashk.controls
 {
-	import cn.flashk.layout.Align;
 	import cn.flashk.controls.managers.SkinLoader;
 	import cn.flashk.controls.managers.SkinManager;
 	import cn.flashk.controls.managers.SourceSkinLinkDefine;
+	import cn.flashk.controls.managers.StyleManager;
 	import cn.flashk.controls.modeStyles.LayoutStyle;
 	import cn.flashk.controls.skin.ActionDrawSkin;
 	import cn.flashk.controls.skin.ImageSkin;
 	import cn.flashk.controls.skin.sourceSkin.ImageSourceSkin;
 	import cn.flashk.controls.support.UIComponent;
+	import cn.flashk.layout.Align;
 	
 	import flash.display.Bitmap;
 	import flash.display.BitmapData;
@@ -52,11 +53,11 @@ package cn.flashk.controls
 		/**
 		 * 图片是否启用平滑缩放，默认关闭，对于需要缩放的图像，请将此值设为true以获得更好的显示效果
 		 */ 
-		public var smoothing:Boolean = false; 
+		public var smoothing:Boolean = true; 
 		
 		protected var ldr:Loader;
 		protected var _source:Object;
-		protected var bp:Bitmap;
+		protected var _bp:Bitmap;
 		protected var _clip:Boolean = true;
 		
 		/**
@@ -68,11 +69,19 @@ package cn.flashk.controls
 			_compoWidth = 100;
 			_compoHeight = 100;
 			
+			smoothing = StyleManager.globalImageSmoth;
+			
 			//边距
 			styleSet[LayoutStyle.PADDING] = 5;
 			
 			setSize(_compoWidth, _compoHeight);
 		}
+
+        public function get bp():Bitmap
+        {
+            return _bp;
+        }
+
 		/**
 		 * Image 图像的源，可以是一个外部文件、库链接或者原始的BitmapData二进制数据
 		 * 
@@ -86,14 +95,22 @@ package cn.flashk.controls
 			if(value is Class){
 				var bd:BitmapData = new value() as BitmapData;
 				if(bd != null){
-					bp = new Bitmap(bd);
-					this.addChild(bp);
+                    if(_bp && _bp.parent)
+                    {
+                        _bp.parent.removeChild(_bp);
+                    }
+					_bp = new Bitmap(bd);
+					this.addChild(_bp);
 					alignBP();
 				}
 			}
 			if(value is BitmapData){
-				bp = new Bitmap(value as BitmapData);
-				this.addChild(bp);
+                if(_bp && _bp.parent)
+                {
+                    _bp.parent.removeChild(_bp);
+                }
+				_bp = new Bitmap(value as BitmapData);
+				this.addChild(_bp);
 				alignBP();
 			}
 		}
@@ -106,11 +123,11 @@ package cn.flashk.controls
 		public function set clip(value:Boolean):void{
 			_clip = value;
 			
-			if(bp != null){
+			if(_bp != null){
 				if(_clip == true){
-					bp.scrollRect = new Rectangle(0,0,_compoWidth-styleSet[LayoutStyle.PADDING]*2,_compoHeight-styleSet[LayoutStyle.PADDING]*2);
+					_bp.scrollRect = new Rectangle(0,0,_compoWidth-styleSet[LayoutStyle.PADDING]*2,_compoHeight-styleSet[LayoutStyle.PADDING]*2);
 				}else{
-					bp.scrollRect = null;
+					_bp.scrollRect = null;
 				}
 			}
 		}
@@ -144,49 +161,64 @@ package cn.flashk.controls
 			}
 		}
 		protected function loadFile(filePath:String):void{
-			ldr = new Loader();
-			ldr.contentLoaderInfo.addEventListener(Event.COMPLETE,getLoaderBitmap);
+            if(ldr == null)
+            {
+			    ldr = new Loader();
+			    ldr.contentLoaderInfo.addEventListener(Event.COMPLETE,getLoaderBitmap);
+            }
 			ldr.load(new URLRequest(filePath));
 		}
 		
 		protected function getLoaderBitmap(event:Event):void
 		{
-			bp = ldr.content as Bitmap;
+            if(_bp && _bp.parent)
+            {
+                _bp.parent.removeChild(_bp);
+            }
+			_bp = ldr.content as Bitmap;
 			alignBP();
-			this.addChild(bp);
+			this.addChild(_bp);
+            this.dispatchEvent(new Event(Event.COMPLETE));
 		}
 		protected function alignBP():void{
-			bp.smoothing = smoothing;
+			_bp.smoothing = smoothing;
 			var maxW:Number = _compoWidth - styleSet[LayoutStyle.PADDING]*2;
 			var maxH:Number = _compoHeight - styleSet[LayoutStyle.PADDING]*2;
 			
-			if(scaleContent == true && (bp.width>maxW || bp.height >maxH) ){
-				if(bp.width/maxW > bp.height/maxH){
-					bp.width = maxW;
-					bp.scaleY = bp.scaleX;
+			if(scaleContent == true && (_bp.width>maxW || _bp.height >maxH) ){
+				if(_bp.width/maxW > _bp.height/maxH){
+					_bp.width = maxW;
+					_bp.scaleY = _bp.scaleX;
 				}else{
-					bp.height = maxH;
-					bp.scaleX = bp.scaleY;
+					_bp.height = maxH;
+					_bp.scaleX = _bp.scaleY;
 				}
 			}
-			if(zoomInContent == true && (bp.width<maxW || bp.height <maxH)){
-				if(bp.width/maxW > bp.height/maxH){
-					bp.width = maxW;
-					bp.scaleY = bp.scaleX;
+			if(zoomInContent == true && (_bp.width<maxW || _bp.height <maxH)){
+				if(_bp.width/maxW > _bp.height/maxH){
+					_bp.width = maxW;
+					_bp.scaleY = _bp.scaleX;
 				}else{
-					bp.height = maxH;
-					bp.scaleX = bp.scaleY;
+					_bp.height = maxH;
+					_bp.scaleX = _bp.scaleY;
 				}
 			}
-			Align.alignToCenter(bp,_compoWidth,_compoHeight);
-			if(scaleContent == false && (bp.width>maxW || bp.height >maxH) ){
-				bp.x = styleSet[LayoutStyle.PADDING];
-				bp.y = styleSet[LayoutStyle.PADDING];
+			if(zoomInContent == false && scaleContent == false)
+			{
+				_bp.y = styleSet[LayoutStyle.PADDING];
+				_bp.x = int((_compoWidth-_bp.width)/2);
+			}else
+			{
+				Align.alignToCenter(_bp,_compoWidth,_compoHeight);
+			}
+			if(scaleContent == false && (_bp.width>maxW || _bp.height >maxH) ){
+				_bp.x = styleSet[LayoutStyle.PADDING];
+				_bp.y = styleSet[LayoutStyle.PADDING];
 				
 				if(_clip == true){
-					bp.scrollRect = new Rectangle(0,0,_compoWidth-styleSet[LayoutStyle.PADDING]*2,_compoHeight-styleSet[LayoutStyle.PADDING]*2);
+					_bp.scrollRect = new Rectangle(0,0,_compoWidth-styleSet[LayoutStyle.PADDING]*2,_compoHeight-styleSet[LayoutStyle.PADDING]*2);
 				}else{
-					bp.scrollRect = null;
+					_bp.scrollRect = null;
 				}
 			}
 		}

@@ -21,6 +21,7 @@ package cn.flashk.controls
 	import flash.display.LineScaleMode;
 	import flash.display.Shape;
 	import flash.display.Sprite;
+	import flash.events.Event;
 	import flash.filters.DropShadowFilter;
 	import flash.filters.GlowFilter;
 	import flash.geom.Rectangle;
@@ -65,6 +66,7 @@ package cn.flashk.controls
 		
 		protected var _paddingLeft:Number = 0;
 		protected var _paddingBottom:Number = 0;
+		protected var _isUseOwnSkin:Boolean = false;
 		
 		
 		public function Panel()
@@ -110,7 +112,34 @@ package cn.flashk.controls
 			setSize(_compoWidth,_compoHeight);
 			titleAlpha=DefaultStyle.windowTitleAlpha;
 			//useOpaqueBackground= true;
+			
+			this.addEventListener(Event.ADDED_TO_STAGE,addStageLis);
+			this.addEventListener(Event.REMOVED_FROM_STAGE,remoStageLis);
 		}
+		
+		protected function remoStageLis(event:Event):void
+		{
+			this.stage.removeEventListener(Event.RESIZE,checkOutView);
+		}
+		
+		protected function checkOutView(event:Event):void
+		{
+			if(this.x > this.stage.stageWidth -60)
+			{
+				this.x = this.stage.stageWidth - 60;
+			}
+			if(this.y > this.stage.stageHeight - 50)
+			{
+				this.y =  this.stage.stageHeight - 50;
+			}
+			if(this.y < 0 ) this.y =0;
+		}
+		
+		protected function addStageLis(event:Event):void
+		{
+			this.stage.addEventListener(Event.RESIZE,checkOutView);
+		}
+		
 		public function set title(value:String):void{
 			if(titleBold == true){
 				txt.htmlText= "<b>"+value+"</b>";
@@ -192,7 +221,10 @@ package cn.flashk.controls
 			if(value == null) return;
 			this.addChild(_content);
 			_content.x  = _paddingLeft;
-			_content.y = tiHeight;
+			if(_isUseOwnSkin == false)
+			{
+				_content.y = tiHeight;
+			}
 			autoClipContent = autoClipContent;
 		}
 		public function get content():DisplayObject{

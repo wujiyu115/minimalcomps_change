@@ -4,15 +4,20 @@ package cn.flashk.controls
 	import cn.flashk.controls.managers.SkinLoader;
 	import cn.flashk.controls.managers.SkinManager;
 	import cn.flashk.controls.managers.SourceSkinLinkDefine;
+	import cn.flashk.controls.managers.StyleManager;
 	import cn.flashk.controls.modeStyles.ButtonMode;
 	import cn.flashk.controls.modeStyles.ButtonStyle;
 	import cn.flashk.controls.skin.IconsSet;
+	import cn.flashk.controls.skin.TitleSkin;
+	import cn.flashk.controls.skin.sourceSkin.PanelSourceSkin;
 	import cn.flashk.controls.support.BitmapDataText;
 	import cn.flashk.ui.UserMouse;
 	
 	import flash.display.Bitmap;
 	import flash.display.BitmapData;
 	import flash.display.DisplayObject;
+	import flash.display.InteractiveObject;
+	import flash.display.Loader;
 	import flash.display.Shape;
 	import flash.display.SimpleButton;
 	import flash.display.Sprite;
@@ -34,7 +39,7 @@ package cn.flashk.controls
 		/**
 		 * 窗口拖动时拖动窗口的透明度值
 		 */ 
-		public var draggingAlpha:Number = 0.65;
+		public var draggingAlpha:Number;
 		/**
 		 * 当允许用户更改大小时窗口的最小宽度,setSize函数不受此限制
 		 */ 
@@ -89,8 +94,11 @@ package cn.flashk.controls
 		protected var dragSY:Number;
 		
 		protected var pressData:Array;
+		protected var moveFollowDis:DisplayObject;
 		
 		protected var tmpBox:Sprite = new Sprite();
+		protected var _useDragCatch:Boolean = false;
+		
 		
 		public static var isResizePress:Boolean = false;
 		
@@ -98,7 +106,8 @@ package cn.flashk.controls
 		{
 			_compoWidth = 400;
 			_compoHeight = 300;
-			
+            
+            draggingAlpha = StyleManager.globalWindowDragAlpha;
 			buttonOverFilter= DefaultStyle.windowButtonOverFilter;
 			closeBtn = new Button();
 			if(SkinManager.isUseDefaultSkin == true){
@@ -231,8 +240,60 @@ package cn.flashk.controls
 			
 			
 			bp = new Bitmap();
-			setAllIndex();
+            _ableUserResizeWindow = StyleManager.globalAbleUserResizeWindow;
+            ableUserResizeWindow = _ableUserResizeWindow;
+			showMiniButton = StyleManager.globalShowWindowMiniButton;
+            setAllIndex();
+            autoClipContent = StyleManager.globalWindowAutoClip;
+            //自动构建
+            if(this.getChildByName("set_windowSize")!= null)
+            {
+                setSize(this.getChildByName("set_windowSize").width,this.getChildByName("set_windowSize").height);
+                this.removeChild(this.getChildByName("set_windowSize"));
+            }
+            if(this.getChildByName("content_sp") != null)
+            {
+                content = this.getChildByName("content_sp") ;
+            }
 		}
+        
+		public function get useDragCatch():Boolean
+		{
+			return _useDragCatch;
+		}
+
+		public function set useDragCatch(value:Boolean):void
+		{
+			_useDragCatch = value;
+		}
+
+        public function useOwnSkin(closeButton:InteractiveObject=null,closeButtonWidth:Number=50):void
+        {
+			_isUseOwnSkin = true;
+            if(closeButton)
+            {
+                closeButton.addEventListener(MouseEvent.CLICK,close);
+            }
+            if(SkinManager.isUseDefaultSkin)
+            {
+                TitleSkin(skin).skinDisplayObject.visible = false;
+            }else
+            {
+                PanelSourceSkin(skin).sc9Bitmap.visible = false;
+            }
+            closeBtn.visible = false;
+            miniBtn.visible = false;
+            maxBtn.visible = false;
+            this.graphics.clear();
+            filterBG.graphics.clear();
+            filterBG.visible = false;
+            bg.graphics.clear();
+            bg.visible = false;
+			content.y = 0;
+			this.setChildIndex(dragBtn,this.numChildren-1);
+			dragBtn.hitTestState.width = dragBtn.hitTestState.width-closeButtonWidth;
+        }
+       
 		
 		protected function setButtonTop(event:MouseEvent):void
 		{
@@ -266,6 +327,8 @@ package cn.flashk.controls
 				tmpBox.addChild(resizeTL);
 				tmpBox.addChild(resizeTR);
 				miniBtn.x = closeBtn.x-closeBtn.compoWidth+2;
+                this.setChildIndex(miniBtn,this.numChildren-1);
+                this.setChildIndex(closeBtn,this.numChildren-1);
 			}else{
 				this.addChild(maxBtn);
 				this.addChild(resizeR);
@@ -360,6 +423,7 @@ package cn.flashk.controls
 					return;
 				}
 			}
+			if(this.parent is Loader) return;
 			this.parent.setChildIndex(this,this.parent.numChildren-1);
 		}
 		/**
@@ -401,9 +465,9 @@ package cn.flashk.controls
 			this.setChildIndex(resizeTR,this.numChildren-1);
 			this.setChildIndex(resizeRB,this.numChildren-1);
 			this.setChildIndex(resizeLB,this.numChildren-1);
-			this.setChildIndex(miniBtn,this.numChildren-1);
-			this.setChildIndex(closeBtn,this.numChildren-1);
 			this.setChildIndex(maxBtn,this.numChildren-1);
+            this.setChildIndex(miniBtn,this.numChildren-1);
+            this.setChildIndex(closeBtn,this.numChildren-1);
 		}
 		
 		protected function startResizeR(event:MouseEvent):void
@@ -718,39 +782,60 @@ package cn.flashk.controls
 			
 			addX = 32;
 			addY = 32;
-			bd = new BitmapData(_compoWidth+addX*2,_compoHeight+addY*2,true,0);
-			bd.draw(this,new Matrix(1,0,0,1,addX,addY));
-			bp.bitmapData = bd;
-			bp.x= this.x-addX;
-			bp.y = this.y-addY;
-			bp.alpha = 0;
+			if(_useDragCatch == true)
+			{
+				bd = new BitmapData(_compoWidth+addX*2,_compoHeight+addY*2,true,0);
+				try
+				{
+					bd.draw(this,new Matrix(1,0,0,1,addX,addY));
+				} 
+				catch(error:Error) 
+				{
+					moveFollowDis = this;
+					bd.dispose();
+				}
+				bp.bitmapData = bd;
+				bp.x= this.x-addX;
+				bp.y = this.y-addY;
+				bp.alpha = 0;
+				this.parent.addChild(bp);
+			}else
+			{
+				moveFollowDis = this;
+			}
 			pressX = this.mouseX;
 			pressY = this.mouseY;
-			this.parent.addChild(bp);
 			this.stage.addEventListener(MouseEvent.MOUSE_MOVE,moveDragView);
 			this.stage.addEventListener(MouseEvent.MOUSE_UP,stopDragWindow);
 		}
 		
 		protected function stopDragWindow(event:MouseEvent):void
 		{
-			
-			bd.dispose();
 			this.x = bp.x+addX;
-			this.y =bp.y+addY;
+			this.y = bp.y+addY;
 			this.alpha = 1;
 			this.visible = true;
 			this.stage.removeEventListener(MouseEvent.MOUSE_MOVE,moveDragView);
 			this.stage.removeEventListener(MouseEvent.MOUSE_UP,stopDragWindow);
+			if(bd)
+			{
+				bd.dispose();
+			}
+			if(bp && bp.parent)
+			{
+				bp.parent.removeChild(bp);
+			}
 		}
 		
 		protected function moveDragView(event:MouseEvent):void
 		{
 			bp.x = this.parent.mouseX-pressX-addX;
 			bp.y = this.parent.mouseY - pressY-addY;
-			if(bp.x <-_compoWidth+35) bp.x = -_compoWidth+35;
-			if(bp.x > this.stage.stageWidth-45) bp.x = this.stage.stageWidth-45;
-			if(bp.y < -20) bp.y = -20;
-			if(bp.y > this.stage.stageHeight-55) bp.y =this.stage.stageHeight-55;
+			
+			if(bp.x <-_compoWidth+0) bp.x = -_compoWidth+0;
+			if(bp.x > this.stage.stageWidth-55) bp.x = this.stage.stageWidth-55;
+			if(bp.y < -35) bp.y = -35;
+			if(bp.y > this.stage.stageHeight-60) bp.y = this.stage.stageHeight-60;
 			event.updateAfterEvent();
 			if(bp.alpha != draggingAlpha){
 				bp.alpha = draggingAlpha;
@@ -758,6 +843,13 @@ package cn.flashk.controls
 			if(this.alpha != 1-draggingAlpha){
 				this.alpha = 1-draggingAlpha;
 				if(this.alpha == 0) this.visible = false;
+			}
+			if(moveFollowDis != null)
+			{
+				moveFollowDis.x = bp.x+addX;
+				moveFollowDis.y = bp.y+addY;
+				moveFollowDis.alpha = bp.alpha;
+				moveFollowDis.visible = true;
 			}
 		}
 		protected function switchMax(event:MouseEvent):void

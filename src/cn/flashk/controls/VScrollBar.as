@@ -3,6 +3,7 @@ package cn.flashk.controls
 	import cn.flashk.controls.managers.SkinLoader;
 	import cn.flashk.controls.managers.SkinManager;
 	import cn.flashk.controls.managers.SourceSkinLinkDefine;
+	import cn.flashk.controls.managers.StyleManager;
 	import cn.flashk.controls.skin.ActionDrawSkin;
 	import cn.flashk.controls.skin.VScrollBarSkin;
 	import cn.flashk.controls.skin.sourceSkin.VScrollBarSourceSkin;
@@ -14,10 +15,13 @@ package cn.flashk.controls
 	import flash.display.Sprite;
 	import flash.events.Event;
 	import flash.events.MouseEvent;
+	import flash.events.TextEvent;
 	import flash.events.TimerEvent;
 	import flash.geom.Rectangle;
+	import flash.text.TextField;
 	import flash.utils.Timer;
 	import flash.utils.clearTimeout;
+	import flash.utils.getTimer;
 	import flash.utils.setTimeout;
 	
 	/**
@@ -57,7 +61,7 @@ package cn.flashk.controls
 		protected var timer:Timer;
 		protected var isUpPress:Boolean = false;
 		protected var _smoothScroll:Boolean = true;
-		protected var _smoothNum:Number = 8;
+		protected var _smoothNum:Number = 3;
 		protected var toY:Number = 0;
 		protected var isDrag:Boolean = false;
 		protected var unableUpdate:Boolean = false;
@@ -67,13 +71,17 @@ package cn.flashk.controls
 		protected var _hideArrow:Boolean = false;
 		protected var _mouseOutAlpha:Number;
 		protected var lastPos:Number=0;
+		protected var isTextField:Boolean = false;
+		protected var lastMaxScrollV:uint;
+		protected var _checkTimer:Timer;
 		
 		public function VScrollBar() 
 		{
 			super();
-			
+            
 			_compoWidth = defaultWidth;
 			_compoHeight = 100;
+			_smoothNum = StyleManager.globalScrollBarSmoothNum;
 			timer = new Timer(60);
 			timer.addEventListener(TimerEvent.TIMER, scrollUpOrDown);
 			initMouseEvents();
@@ -81,11 +89,12 @@ package cn.flashk.controls
 			this.addEventListener(MouseEvent.MOUSE_OVER, setMyAlphaIn);
 			mouseOutAlpha = 1;
 			setSize(_compoWidth, _compoHeight);
+			this.addEventListener(Event.ADDED_TO_STAGE,checkText);
 		}
 		public function set autoClip(value:Boolean):void {
 			_autoClip = value;
 			if (_autoClip == true && _target != null) {
-				_target.scrollRect = new Rectangle(clipX, lastPos, clipWidth, clipHeight);
+				_target.scrollRect = new Rectangle(clipX, Math.round(lastPos), clipWidth, clipHeight);
 			}
 		}
 		public function get autoClip():Boolean {
@@ -125,6 +134,10 @@ package cn.flashk.controls
 			return _mouseOutAlpha;
 		}
 		public function get maxScrollPosition():Number {
+			if(isTextField)
+			{
+				return TextField(_target).maxScrollV-1;
+			}
 			updateMaxPos();
 			return maxPos;
 		}
@@ -132,6 +145,10 @@ package cn.flashk.controls
 			return toY;
 		}
 		public function get clipSize():Number {
+			if(isTextField)
+			{
+				return TextField(_target).bottomScrollV-TextField(_target).scrollV+1;
+			}
 			return clipHeight;
 		}
 		public function set clipSize(value:Number):void{
@@ -140,8 +157,66 @@ package cn.flashk.controls
 		public function getAllUIDisplayObject():Array {
 			return [barRef, scrollerRef, arrowUpRef, arrowDownRef];
 		}
-		public function setTarget(target:DisplayObject,enableHandDrag:Boolean, clipWidth:Number, clipHeight:Number,clipX:Number=0,clipY:Number=0):void {
+		
+		/**
+		 * 对于target对象为TextField可以使用此函数自动监视文本的更改 
+		 * @param isStart 是否启动(true)/清除(false)
+		 * @param delay 检测的间隔，毫秒
+		 * 
+		 */
+		public function startAutoCheck(isStart:Boolean,delay:uint=500):void
+		{
+			if(isStart)
+			{
+				if(_checkTimer==null)
+				{
+					_checkTimer = new Timer(delay);
+				}
+				_checkTimer.delay = delay;
+				_checkTimer.addEventListener(TimerEvent.TIMER,checkText);
+				_checkTimer.start();
+			}else
+			{
+				if(_checkTimer)
+				{
+					_checkTimer.removeEventListener(TimerEvent.TIMER,checkText);
+					_checkTimer.stop();
+					_checkTimer = null;
+				}
+			}
+		}
+		private function checkText(event:Event):void
+		{
+			if( isTextField && lastMaxScrollV != Object(_target).maxScrollV) 
+			{
+				updateSize();
+				lastMaxScrollV = TextField(_target).maxScrollV;
+			}
+		}
+		/**
+		 * 
+		 * @param target 显示对象或者文本TextField，如果为TextField，则不需要后面的参数
+		 * @param enableHandDrag
+		 * @param clipWidth
+		 * @param clipHeight
+		 * @param clipX
+		 * @param clipY
+		 * 
+		 */
+		public function setTarget(target:DisplayObject,enableHandDrag:Boolean=false, clipWidth:Number=0, clipHeight:Number=0,clipX:Number=0,clipY:Number=0):void {
 			_target = target;
+			if(target is TextField)
+			{
+				isTextField = true;
+				_autoClip = false;
+				_smoothScroll = false;
+				TextField(target).addEventListener(Event.CHANGE,checkUpdate);
+				TextField(target).addEventListener(TextEvent.TEXT_INPUT,checkUpdate);
+				TextField(target).addEventListener(Event.SCROLL,checkUpdate);
+			}else
+			{
+				isTextField = false;
+			}
 			this.clipWidth = clipWidth;
 			this.clipHeight = clipHeight;
 			this.clipX = clipX;
@@ -154,12 +229,47 @@ package cn.flashk.controls
 				_target.addEventListener(MouseEvent.MOUSE_OVER, setMyAlphaIn);
 				_target.addEventListener(MouseEvent.MOUSE_OUT, setMyAlphaOut);
 			}
-			var inter:InteractiveObject = target as InteractiveObject;
-			if(inter != null){
-				inter.addEventListener(MouseEvent.MOUSE_WHEEL,mouseWellScroll);
+			if(target is InteractiveObject){
+				target.addEventListener(MouseEvent.MOUSE_WHEEL,mouseWellScroll);
 			}
 		}
-		public function updateSize(newSize:Number,isLess:Boolean=false):void{
+		private function checkUpdate(event:Event=null):void
+		{
+			if(lastMaxScrollV != TextField(_target).maxScrollV)
+			{
+				updateSize();
+				lastMaxScrollV = TextField(_target).maxScrollV;
+			}
+			updateScrollerY();
+		}
+		private function checkViewScroll(event:Event=null):void
+		{
+			if(isTextField==false) 
+			{
+				if(targetHeight <= clipHeight)
+				{
+					this.visible = false;
+				}else
+				{
+					this.visible = true;
+				}
+				return;
+			}
+			if(TextField(_target).maxScrollV > 1)
+			{
+				alpha = 1;
+				mouseChildren=true;
+			}else
+			{
+				alpha = 0.5;
+				mouseChildren=false;
+			}
+		}
+		public function updateSize(newSize:Number=0,isLess:Boolean=false):void{
+			if(isTextField && newSize==0)
+			{
+				if(lastMaxScrollV == TextField(_target).maxScrollV) return;
+			}
 			targetHeight = newSize;
 			updateMaxPos();
 			if(lastPos>maxPos && isLess == true){
@@ -169,7 +279,7 @@ package cn.flashk.controls
 				}
 			}
 			skin.reDraw();
-			
+			checkViewScroll();
 		}
 		public function clearTargetListener():void {
 			_target.removeEventListener(MouseEvent.MOUSE_DOWN, startHandDrag);
@@ -189,7 +299,7 @@ package cn.flashk.controls
 			if(value > maxPos){
 				value = value;
 			}
-			_target.scrollRect = new Rectangle(clipX,value , clipWidth, clipHeight);
+			_target.scrollRect = new Rectangle(clipX,Math.round(value) , clipWidth, clipHeight);
 			updateScrollBarPostion();
 		}
 		
@@ -222,6 +332,11 @@ package cn.flashk.controls
 			barRef.addEventListener(MouseEvent.MOUSE_DOWN, scrollTo);
 		}
 		private function mouseWellScroll(event:MouseEvent):void{
+			if(isTextField)
+			{
+				updateScrollerY();
+				return;
+			}
 			var i:int=0;
 			for(i =0 ;i<mousemouseWheelDelta;i++){
 				if(event.delta <0){
@@ -272,27 +387,32 @@ package cn.flashk.controls
 			unableUpdate = false;
 		}
 		protected function scroll(event:Event):void {
-			if(_target != null){
-			var newY:Number = (toY - getRectPos()) / _smoothNum;
-			var absNum:Number = Math.abs(toY - getRectPos());
-			if (Math.abs(newY) < 1) {
-				if (toY > getRectPos()) {
-					newY = 1;
-				}else {
-					newY = -1;
-				}
-			}
-			if (absNum <= 1 && isDrag == false) {
-				this.removeEventListener(Event.ENTER_FRAME, scroll);
-				setRectPos(toY);
+			if(_target && isTextField)
+			{
+				TextField(_target).scrollV = TextField(_target).maxScrollV*toY /maxPos;
 				return;
 			}
-			if(absNum > 1){
-				setRectPos( getRectPos() + newY);
-				if (unableUpdate == false) {
-					updateScrollerY();
+			if(_target != null){
+				var newY:Number = (toY - getRectPos()) / _smoothNum;
+				var absNum:Number = Math.abs(toY - getRectPos());
+				if (Math.abs(newY) < 1) {
+					if (toY > getRectPos()) {
+						newY = 1;
+					}else {
+						newY = -1;
+					}
 				}
-			}
+				if (absNum <= 1 && isDrag == false) {
+					this.removeEventListener(Event.ENTER_FRAME, scroll);
+					setRectPos(toY);
+					return;
+				}
+				if(absNum > 1){
+					setRectPos( getRectPos() + newY);
+					if (unableUpdate == false) {
+						updateScrollerY();
+					}
+				}
 			}else{
 				updateScrollerY();
 				this.removeEventListener(Event.ENTER_FRAME, scroll);
@@ -311,7 +431,18 @@ package cn.flashk.controls
 		protected function updateScrollerY():void {
 			var lessNum:Number = _hideArrow ? 0 : _compoWidth;
 			max = _compoHeight - lessNum * 2 - scrollerRef.height;
-			scrollerRef.y = lessNum + max * getRectPos() / maxPos;
+			if(isTextField)
+			{
+				if(isDrag == false)
+				{
+					var scm:Number = (TextField(_target).scrollV-1)/(TextField(_target).maxScrollV-1);
+					if(scm>1) scm = 1;
+					scrollerRef.y = lessNum + max * scm;
+				}
+			}else
+			{
+				scrollerRef.y = lessNum + max * getRectPos() / maxPos;
+			}
 			scrollerRef.y = int(scrollerRef.y);
 		}
 		public function updateScrollBarPostion():void{
@@ -414,6 +545,11 @@ package cn.flashk.controls
 			return this.mouseY;
 		}
 		protected function updateMaxPos():void {
+			if(isTextField)
+			{
+				maxPos = TextField(_target).maxScrollV;
+				return;
+			}
 			maxPos = (targetHeight - clipHeight);
 			if(maxPos<0) maxPos = 0;
 		}
@@ -421,20 +557,27 @@ package cn.flashk.controls
 			return _target.scrollRect.y;
 		}
 		protected function setRectPos(value:Number):void {
+			if(isTextField)
+			{
+				TextField(_target).scrollV = TextField(_target).maxScrollV*toY /maxPos;
+				return;
+			}
 			var npos:Number = Math.round(value/snapNum)*snapNum;
 			//npos = value;
 			if(npos != lastPos){
 				lastPos = npos;
-				_target.scrollRect = new Rectangle(clipX,lastPos , clipWidth, clipHeight);
+				_target.scrollRect = new Rectangle(clipX,Math.round(lastPos) , clipWidth, clipHeight);
 			}
 		}
 		public function setMyAlphaOut(event:MouseEvent=null):void {
 			//this.alpha = _mouseOutAlpha;
+			if(this.mouseChildren==false) return;
 			this.removeEventListener(Event.ENTER_FRAME,addAlphaEn);
 			this.addEventListener(Event.ENTER_FRAME,lessAlphaEn);
 		}
 		public function setMyAlphaIn(event:MouseEvent):void {
 			//this.alpha = 1.0;
+			if(this.mouseChildren==false) return;
 			this.removeEventListener(Event.ENTER_FRAME,lessAlphaEn);
 			this.addEventListener(Event.ENTER_FRAME,addAlphaEn);
 		}

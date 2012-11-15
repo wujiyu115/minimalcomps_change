@@ -142,10 +142,10 @@ package cn.flashk.controls.support
 		}
 		public function set data(value:Object):void{
 			_data = value;
-			
-			IListItemRender(txts[0]).data = _data[_list.dataField[0]];
-			IListItemRender(txts[1]).data = _data[_list.dataField[1]];
-			IListItemRender(txts[2]).data = _data[_list.dataField[2]];
+			for(var i:int=0;i<_list.dataField.length;i++)
+			{
+				IListItemRender(txts[i]).data = _data[_list.dataField[i]];
+			}
 			/*
 			if(_data.icon != null){
 				if(bp == null){

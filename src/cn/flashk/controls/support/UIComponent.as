@@ -5,6 +5,7 @@ package cn.flashk.controls.support
 	import cn.flashk.controls.managers.ComponentsManager;
 	import cn.flashk.controls.managers.SkinManager;
 	import cn.flashk.controls.skin.ActionDrawSkin;
+	import cn.flashk.controls.skin.sourceSkin.SourceSkin;
 	
 	import flash.display.Sprite;
 	import flash.display.Stage;
@@ -86,6 +87,8 @@ package cn.flashk.controls.support
 		public static var stage:Stage;
 		public static var isCtrlKeyDown:Boolean = false;
 		public static var isAltKeyDown:Boolean = false;
+        
+        private static var _isInited:Boolean = false;
 		
 		protected var _compoWidth:Number = 10;
 		protected var _compoHeight:Number = 10;
@@ -136,6 +139,7 @@ package cn.flashk.controls.support
 		 */ 
 		public function UIComponent() 
 		{
+//			this.mouseEnabled = false;
 			ComponentsManager.allRefs.push(this);
 			if (SkinManager.isUseDefaultSkin == true) {
 				isUseSourceSkin = false;
@@ -249,9 +253,23 @@ package cn.flashk.controls.support
 		public function destroy():void{
 			
 		}
+        public function hideSkin(isHide:Boolean=true):void
+        {
+            if(SkinManager.isUseDefaultSkin)
+            {
+               
+            }else
+            {
+                SourceSkin(skin).sc9Bitmap.visible = !isHide;
+            }
+        }
 		private function addToStageInit(event:Event):void{
-			UIComponent.stage = this.stage;
-			initStageLis();
+            if(_isInited == false)
+            {
+    			UIComponent.stage = this.stage;
+    			initStageLis();
+                _isInited = true;
+            }
 		}
 		protected static function initStageLis():void
 		{
@@ -261,8 +279,7 @@ package cn.flashk.controls.support
 		
 		/*
 		*/
-		protected static function checkKeyUp(
-			event:KeyboardEvent):void
+		protected static function checkKeyUp(event:KeyboardEvent):void
 		{
 			if(event.keyCode == Keyboard.CONTROL || event.keyCode == 18){
 				isCtrlKeyDown = event.ctrlKey;

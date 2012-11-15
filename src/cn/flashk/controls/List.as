@@ -1,5 +1,6 @@
 ﻿package cn.flashk.controls
 {
+	import cn.flashk.controls.events.CustomEvent;
 	import cn.flashk.controls.interfaces.IListItemRender;
 	import cn.flashk.controls.managers.SkinLoader;
 	import cn.flashk.controls.managers.SkinManager;
@@ -9,6 +10,7 @@
 	import cn.flashk.controls.skin.ListSkin;
 	import cn.flashk.controls.skin.SkinThemeColor;
 	import cn.flashk.controls.skin.sourceSkin.ListSourceSkin;
+	import cn.flashk.controls.skin.sourceSkin.SourceSkin;
 	import cn.flashk.controls.support.ItemsSelectControl;
 	import cn.flashk.controls.support.ListItemRender;
 	import cn.flashk.controls.support.UIComponent;
@@ -21,6 +23,7 @@
 	import flash.events.KeyboardEvent;
 	import flash.events.MouseEvent;
 	import flash.ui.Keyboard;
+	import flash.utils.getTimer;
 	
 	
 	//events
@@ -29,6 +32,13 @@
 	 * @eventType flash.events.Event.CHANGE
 	 **/
 	[Event(name="change",type="flash.events.Event")]
+	
+	
+	/**
+	 *  鼠标在子项中划过时调度
+	 * @eventType cn.flashk.controls.events.CustomEvent.ITEM_MOUSE_OVER
+	 **/
+	[Event(name="itemMouseOver",type="cn.flashk.controls.events.CustomEvent")]
 	
 	/**
 	 * List 组件将显示基于列表的信息，并且是适合显示信息数组的理想选择。默认显示一列文字、图标（如果有）。
@@ -64,16 +74,20 @@
 		protected var _dataProvider:Object;
 		protected var scrollBarLastVisible:Boolean = false;
 		protected var isDpAdd:Boolean = false;
+		protected var _nowOverData:Object;
+		protected var _nowOverIndex:int;
+		protected var _useIconWidth:Boolean = true;
+		
 		
 		private var boxSelectControler:ItemsSelectControl;
 		
 		public function List()
 		{
 			super();
+            
 			_compoWidth = 300;
 			_compoHeight = 300;
 			_dataProvider = new DataProvider();
-			
 			styleSet["ellipse"] = 0;
 			styleSet["borderColor"] = ColorConversion.transUintToWeb(SkinThemeColor.border);
 			styleSet["borderAlpha"] = 0.5;
@@ -101,20 +115,70 @@
 			this.addEventListener(Event.ADDED_TO_STAGE,addKeyLis);
 			this.addEventListener(Event.REMOVED_FROM_STAGE,clearLis);
 		}
+        
+		/**
+		 * 返回渲染器的实例 
+		 * @param index
+		 * @return 
+		 * 
+		 */
+        public function getRenderAt(index:uint):DisplayObject
+		{
+			return items.getChildAt(index);
+		}
+
+		public function get useIconWidth():Boolean
+		{
+			return _useIconWidth;
+		}
+
+		public function set useIconWidth(value:Boolean):void
+		{
+			_useIconWidth = value;
+		}
+
+		public function get nowOverIndex():int
+		{
+			return _nowOverIndex;
+		}
+
+		public function get nowOverData():Object
+		{
+			return _nowOverData;
+		}
+
+        override public function hideSkin(isHide:Boolean=true):void
+        {
+            if(SkinManager.isUseDefaultSkin)
+            {
+                styleSet["borderAlpha"] = 0;
+                styleSet["backgroundAlpha"] = 0;
+                updateSkin();
+            }else
+            {
+                SourceSkin(skin).sc9Bitmap.visible = !isHide;
+            }
+        }
+        
 		/**
 		 * 设置List的数据源，对于List、DataGrid, TileList它应该是个DataProvider对象（可以直接将二维数组转为DataProvider，请参见DataProvider构造函数）,对于 Tree 它应该是个XML
 		 * 
 		 * @see cn.flashk.controls.proxy.DataProvider
 		 */ 
 		public function set dataProvider(value:Object):void{
-			
-			_dataProvider = value;
 			removeAll();
+			_dataProvider = value;
 			isDpAdd = true;
 			for(var i:int=0;i<_dataProvider.length;i++){
 				addItem(_dataProvider.getItemAt(i));
 			}
 			isDpAdd = false;
+            try{
+                scrollBar.scrollToPosition(0);
+            }catch(e:Error)
+            {
+                
+            }
 		}
 		public function get dataProvider():Object{
 			return _dataProvider;
@@ -282,6 +346,9 @@
 		 * <p>向项目列表的末尾追加项目。 </p>
 		 * 使用默认渲染器的情况下，项目应包含 label 和 data 属性，但包含其它属性的项目也可以添加到列表。 项目的 label 属性用于显示行的标签；data 属性用于存储行的数据。 
 		 * 
+		 * item.icon 指定使用图标，支持三种类型的值：BitmapData/Class引用 /库链接名的String 
+		 * 对于useIconWidth=true的设定，使用iocn本身的宽度来排列文本，对于false设定，使用styleSet["textPadding"] = 5; styleSet["iconPadding"] = 5;两个值
+		 * 
 		 * @param item 要添加到数据提供者的项目。 
 		 */ 
 		public function addItem(item:Object):void{
@@ -307,6 +374,8 @@
 			}
 			IListItemRender(render).setSize(itemWidth,0);
 			InteractiveObject(render).addEventListener(MouseEvent.CLICK,itemClick);
+			InteractiveObject(render).addEventListener(MouseEvent.ROLL_OVER,itemMouseOver);
+			InteractiveObject(render).addEventListener(MouseEvent.ROLL_OUT,itemMouseOut);
 			if(items.numChildren == 0 || index == 0){
 				DisplayObject(render).y = 0;
 			}else{
@@ -326,6 +395,7 @@
 			scrollBar.snapNum = IListItemRender(render).itemHeight;
 			scrollBar.arrowClickStep = scrollBar.snapNum;
 			scrollBar.updateSize(IListItemRender(render).itemHeight*items.numChildren);
+//			trace(item.label,IListItemRender(render).itemHeight*items.numChildren);
 			if(index == _selectedIndex){
 				this.dispatchEvent(new Event("getSelectIndexData"));
 			}
@@ -370,6 +440,10 @@
 			for(var i:int=items.numChildren-1;i>=0;i--){
 				items.removeChildAt(i);
 			}
+			if(_dataProvider is DataProvider )
+			{
+				_dataProvider.removeAll();
+			}
 		}
 		/**
 		 * 检索指定索引处的项目。 
@@ -400,6 +474,7 @@
 			}
 		}
 		override public function setSize(newWidth:Number, newHeight:Number):void {
+			if(newWidth == _compoWidth && newHeight == _compoHeight) return;
 			super.setSize(newWidth, newHeight);
 			scrollBar.setTarget(items,false,_compoWidth,_compoHeight-2);
 			scrollBar.y = 1;
@@ -418,6 +493,17 @@
 				IListItemRender(items.getChildAt(i)).setSize(itemWidth,0);
 			}
 		}
+		
+		protected function itemMouseOver(event:Event):void
+		{
+			_nowOverData = IListItemRender(event.currentTarget).data;
+			_nowOverIndex = items.getChildIndex(event.currentTarget as DisplayObject);
+			this.dispatchEvent(new Event(CustomEvent.ITEM_MOUSE_OVER));
+		}
+		protected function itemMouseOut(event:Event):void
+		{
+			this.dispatchEvent(new Event(CustomEvent.ITEM_MOUSE_OUT));
+		}
 		protected function itemClick(event:Object):void{
 			var render:DisplayObject;
 			if(_allowMultipleSelection == false || UIComponent.isCtrlKeyDown == false){
@@ -427,7 +513,15 @@
 				}
 			}
 			IListItemRender(event.currentTarget).selected = !IListItemRender(event.currentTarget).selected;
-			_selectedIndex = items.getChildIndex(event.currentTarget as DisplayObject);
+			try
+			{
+				_selectedIndex = items.getChildIndex(event.currentTarget as DisplayObject);
+			} 
+			catch(error:Error) 
+			{
+				_selectedIndex = 0;
+			}
+			
 			this.dispatchEvent(new Event(Event.CHANGE));
 		}
 	}

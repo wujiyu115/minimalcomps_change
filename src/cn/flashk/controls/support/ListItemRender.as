@@ -18,6 +18,7 @@ package cn.flashk.controls.support
 	import flash.events.MouseEvent;
 	import flash.text.TextField;
 	import flash.text.TextFormat;
+	import flash.utils.getDefinitionByName;
 
 	public class ListItemRender extends Sprite implements IListItemRender
 	{
@@ -33,6 +34,7 @@ package cn.flashk.controls.support
 		protected var padding:Number;
 		protected var _isUseMyselfPadding:Boolean = false;
 		protected var skin:ListItemSourceSkin;
+		protected var iconDis:DisplayObject;
 		
 		public function ListItemRender()
 		{
@@ -103,21 +105,39 @@ package cn.flashk.controls.support
 			_data = value;
 			txt.text = _data.label;
 			if(_data.icon != null){
-				setIcon(_data.icon);
+				setIcon(_data.icon,List(_list).useIconWidth);
 			}else{
 				//txt.x = 1;
 			}
 		}
-		public function setIcon(iconRef:Object,isUseMyselfPadding:Boolean = false,iconTxtpaddingNumber:Number = 17):void{
+		public function setIcon(iconRef:Object,isUseMyselfPadding:Boolean = false):void{
+			iconDis = null;
 			_isUseMyselfPadding = isUseMyselfPadding;
 			if(bp == null){
 				bp = new Bitmap();
 			}
+			if(iconRef is String)
+			{
+				try{
+					iconRef = getDefinitionByName(String(iconRef)) as Class;
+				}catch(e:Error)
+				{
+					if(_list && _list.loaderInfo)
+					{
+						iconRef = _list.loaderInfo.applicationDomain.getDefinition(String(iconRef)) as Class;
+					}
+				}
+			}
 			if(iconRef is Class){
 				var icon:Object = new iconRef();
-				bp.bitmapData = icon as BitmapData;
+				if(icon is BitmapData)
+				{
+					bp.bitmapData = icon as BitmapData;
+				}else
+				{
+					iconDis = icon as DisplayObject;
+				}
 			}
-			trace(iconRef is BitmapData);
 			if(iconRef is BitmapData){
 				bp.bitmapData = iconRef as BitmapData;
 			}
@@ -126,12 +146,21 @@ package cn.flashk.controls.support
 				bp.x = Number(_list.getStyleValue("iconPadding"));
 			}else{
 				bp.x = padding;
-				txt.x = bp.x + iconTxtpaddingNumber;
+				if(iconDis)
+				{
+					txt.x = bp.x + iconDis.width;
+				}else
+				{
+					txt.x = bp.x + bp.width+2;
+				}
 			}
-			trace(bp.x);
 			bp.y = int((_height - bp.height)/2);
 			if(bp.y<0) bp.y = 0;
-			
+			if(iconDis)
+			{
+				this.addChild(iconDis);
+				this.removeChild(bp);
+			}
 		}
 		public function get data():Object{
 			return _data;
